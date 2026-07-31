@@ -1,0 +1,9 @@
+# comment: ignore node_modules, .env (but not .env.example), logs, dist/build folders, .DS_Store, uploads/ temp folder
+
+
+node_modules/
+.env
+.env.local
+.env.development.local  
+
+
