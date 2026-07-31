@@ -1,6 +1,6 @@
 // comment: import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
 
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 // comment: create and export an async function chunkDocuments(documents, options = {}) that:
 //   - accepts an array of LangChain Document objects (the output of universal-loader.js, each with { pageContent, metadata })
