@@ -15,12 +15,12 @@ import { getGrokModel } from "./grok.js";
 //   }
 
 const defaultModelConfig = {
-  rewrite:      { provider: "gemini", model: "gemini-1.5-flash" },
+  rewrite:      { provider: "gemini", model: "gemini-flash-latest" },
   hyde:         { provider: "openai", model: "gpt-4o" },
   decompose:    { provider: "grok",   model: "grok-2-latest" },
-  routing:      { provider: "gemini", model: "gemini-1.5-flash" },
+  routing:      { provider: "gemini", model: "gemini-flash-latest" },
   generation:   { provider: "openai", model: "gpt-4o" },
-  judge:        { provider: "gemini", model: "gemini-1.5-flash" }
+  judge:        { provider: "gemini", model: "gemini-flash-latest" }
 };
 
 
