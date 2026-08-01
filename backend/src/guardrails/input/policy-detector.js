@@ -20,14 +20,21 @@ import { getModelForStep } from "../../llm-providers/llm_router.js";
 export const checkPolicyViolation = async (queryText) => {
     const model = getModelForStep("routing");
     const prompt = `
-You are a content moderation assistant. Classify the following user query into one of three categories: "safe", "off_topic", or "policy_violation". Provide a short reason for your classification.
+You are a content moderation assistant for an educational RAG system. This course covers React, React Native, and mobile app development topics.
+
+Classify the following user query into one of three categories:
+- "safe" — a legitimate question related to the course topics (React, React Native, mobile development, programming concepts)
+- "off_topic" — a question unrelated to the course subject matter (e.g. cooking, unrelated general knowledge, small talk)
+- "policy_violation" — a request for harmful, unethical, or inappropriate content
+
+Provide a short reason for your classification.
 
 User Query: "${queryText}"
 Respond ONLY with valid JSON, no extra text, in this exact format:
 {
   "classification": "<one of: safe, off_topic, policy_violation>",
   "reason": "<short reason for classification>"
-}`;  
+}`; 
 
     const response = await model.invoke(prompt);
     const responseText = response.content;

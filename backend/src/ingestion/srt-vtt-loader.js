@@ -86,17 +86,7 @@ const loadSrtVttFile = async (filePath) => {
     throw new Error(`Unsupported file type: ${ext}`);
   }
 
-  // Extract module_number and lecture_title from the folder structure
-  const fileDir = path.dirname(filePath);
-  const parentDir = path.basename(fileDir);
-  const grandParentDir = path.basename(path.dirname(fileDir));
-
-  return {
-    module_number: grandParentDir,
-    lecture_title: parentDir,
-    cues,
-    source_file: filePath
-  };
+  return { cues, source_file: filePath };
 };
 
 export { loadSrtVttFile };

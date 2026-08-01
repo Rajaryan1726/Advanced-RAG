@@ -63,10 +63,12 @@ const upsertChunks = async (collectionName, chunks) => {
     }
   }));
 
-  // Upsert into Qdrant
-  await qdrantClient.upsert(collectionName, { points });
 
-  return points.length;
+// Upsert into Qdrant
+await qdrantClient.upsert(collectionName, { points });
+
+// Return the actual array of generated point ids, not just the count
+return points.map((point) => point.id);
 };
 
 export { upsertChunks };

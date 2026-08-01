@@ -16,12 +16,16 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { clerkMiddleware } from "@clerk/express"; 
-// import routes from "./routes/index.js"; // Uncomment when routes are set up
+import routes from "./routes/index.js"; 
+import multer from "multer";
+import "./queue/workers/ingestion-worker.js";
+import "./queue/workers/embedding-worker.js";
 
 
 
 // comment: create the express app instance: const app = express()
 const app = express();
+
 
 
 // comment: apply core middleware in order:
@@ -41,7 +45,34 @@ app.get("/health", (req, res) => {
 });
 
 // comment: mount the main API router under /api once routes/index.js exists (leave a TODO comment here for now)
-// app.use("/api", routes);
+app.use("/api", routes);
+
+// comment: add a global Express error-handling middleware — MUST be defined with all 4
+//   parameters (err, req, res, next) so Express recognizes it as an error handler specifically,
+//   and MUST be registered AFTER all routes/middleware (Express only routes errors to handlers
+//   defined below where the error occurred)
+//
+//   This catches:
+//     - Multer errors (e.g. fileFilter rejecting an unsupported mimetype, file size limits)
+//     - Any other error passed via next(error) from route handlers that isn't already caught
+//       by a route's own try/catch
+//
+//   Behavior:
+//     - if err is a MulterError (check err.name === "MulterError" or instanceof multer.MulterError),
+//       respond 400 with { error: err.message } — these are always client-side input problems
+//     - for any other unhandled error, log it server-side (full error, including stack) and
+//       respond 500 with a generic message, never leaking internal error details to the client
+
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err.name === "MulterError") {
+    console.error("Multer error:", err.message);
+    return res.status(400).json({ error: err.message });
+  }
+
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Something went wrong on the server" });
+});
 
 
 // comment: define PORT from process.env.PORT, default to something like 3000 if not set

@@ -12,7 +12,7 @@ export const detectPII = (text) => {
         { type: 'email', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g },
         { type: 'phone', pattern: /(?:\+91[-\s]?)?\d{10}\b/g },
         { type: 'credit_card', pattern: /\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b/g },
-        { type: 'aadhaar', pattern: /\b\d{12}\b/g }
+        { type: 'aadhaar', pattern: /\b[2-9]\d{3}[-\s]?\d{4}[-\s]?\d{4}\b/g }
     ];
     const matches = [];
     let containsPII = false;
