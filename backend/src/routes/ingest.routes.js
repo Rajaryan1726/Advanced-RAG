@@ -30,29 +30,23 @@ const storage = multer.diskStorage({
   },
 });
 
-const supportedMimetypes = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/csv",
-  "text/plain",
-  "application/x-subrip",
-  "text/vtt",
-];
+function fileFilter(req, file, cb) {
+  const allowedExtensions = ['.srt', '.vtt', '.pdf', '.docx', '.csv', '.txt']
+  const ext = path.extname(file.originalname).toLowerCase()
 
-const fileFilter = (req, file, cb) => {
-  if (supportedMimetypes.includes(file.mimetype)) {
-    cb(null, true);
+  if (allowedExtensions.includes(ext)) {
+    cb(null, true)
   } else {
-    cb(new Error(`Unsupported file type: ${file.mimetype}`), false);
+    cb(new Error(`Unsupported file type: ${ext}`))
   }
-};
+}
 
 const upload = multer({ storage, fileFilter });
 const router = express.Router();
 
 // Route: POST /manifest
 //   - middleware: requireAuth
-//   - expects { files: [{ relativePath: string }, ...] } in req.body (plain JSON, no file bytes)
+//   - expects { files: [{ relativePath: string, moduleNumberOverride?: number }, ...] } in req.body
 router.post("/manifest", requireAuth, async (req, res) => {
   try {
     const clerkUserId = getAuthUserId(req);
@@ -69,7 +63,15 @@ router.post("/manifest", requireAuth, async (req, res) => {
     // Step 4: build a manifest entry for each file
     const manifestEntries = await Promise.all(
       files.map(async (file) => {
-        const moduleNumber = extractModuleNumber(file.relativePath);
+        const isValidOverride =
+          file.moduleNumberOverride != null &&
+          Number.isInteger(file.moduleNumberOverride) &&
+          file.moduleNumberOverride > 0;
+
+        const moduleNumber = isValidOverride
+          ? file.moduleNumberOverride
+          : extractModuleNumber(file.relativePath);
+
         const tempId = uuidv4();
 
         await IngestManifest.create({

@@ -23,6 +23,7 @@ const QueryHistorySchema = new Schema({
     citedChunks: { type: Array },
     judgeScore: { type: Number },
     retryCount: { type: Number, default: 0 },
+    sessionId: { type: String },
 }, 
 { timestamps: true }
 );

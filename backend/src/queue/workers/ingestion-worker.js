@@ -23,19 +23,14 @@ export const ingestionWorker = new Worker(
     const { filePath, clerkUserId, moduleNumber, originalFilename, mimetype } = job.data;
 
     // Step 0 — Validate file extension and mimetype before doing any real work
+    // Step 0 — Validate file extension (trust extension over mimetype —
+    // browsers commonly send application/octet-stream for .srt files since
+    // it isn't a browser-recognized MIME type, so mimetype alone is unreliable)
     const supportedExtensions = [".pdf", ".docx", ".csv", ".txt", ".srt", ".vtt"];
-    const supportedMimetypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/csv",
-      "text/plain",
-      "application/x-subrip",
-      "text/vtt",
-    ];
     const fileExtension = path.extname(originalFilename || filePath).toLowerCase();
 
-    if (!supportedExtensions.includes(fileExtension) || !supportedMimetypes.includes(mimetype)) {
-      throw new Error(`Unsupported file type: ${fileExtension} with mimetype ${mimetype}`);
+    if (!supportedExtensions.includes(fileExtension)) {
+      throw new Error(`Unsupported file type: ${fileExtension}`);
     }
 
     const isSubtitle = fileExtension === ".srt" || fileExtension === ".vtt";
