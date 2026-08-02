@@ -13,7 +13,7 @@
 //   like .DS_Store or Thumbs.db (which webkitdirectory can pick up) from
 //   being sent to the manifest endpoint.
 
-const SUPPORTED_EXTENSIONS = ['.srt', '.vtt', '.pdf', '.docx', '.csv', '.txt'];
+const SUPPORTED_EXTENSIONS = ['.srt', '.vtt', '.pdf', '.docx', '.csv', '.txt', '.pptx'];
 
 export function fileListToRelativePaths(fileList) {
     const filesWithRelativePaths = [];

@@ -80,7 +80,7 @@ const UploadPage = () => {
           Drag a folder here, or browse
         </h2>
         <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-          Supports .srt, .vtt, .pdf, .docx, and .csv. Folder names like
+          Supports .srt, .vtt, .pdf, .docx, .pptx, and .csv. Folder names like
           "module-1" are used to auto-detect the module number.
         </p>
 

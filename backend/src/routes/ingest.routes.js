@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 });
 
 function fileFilter(req, file, cb) {
-  const allowedExtensions = ['.srt', '.vtt', '.pdf', '.docx', '.csv', '.txt']
+  const allowedExtensions = ['.srt', '.vtt', '.pdf', '.docx', '.csv', '.txt', '.pptx'];
   const ext = path.extname(file.originalname).toLowerCase()
 
   if (allowedExtensions.includes(ext)) {

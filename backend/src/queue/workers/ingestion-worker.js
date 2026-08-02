@@ -22,11 +22,10 @@ export const ingestionWorker = new Worker(
   async (job) => {
     const { filePath, clerkUserId, moduleNumber, originalFilename, mimetype } = job.data;
 
-    // Step 0 — Validate file extension and mimetype before doing any real work
     // Step 0 — Validate file extension (trust extension over mimetype —
     // browsers commonly send application/octet-stream for .srt files since
     // it isn't a browser-recognized MIME type, so mimetype alone is unreliable)
-    const supportedExtensions = [".pdf", ".docx", ".csv", ".txt", ".srt", ".vtt"];
+    const supportedExtensions = [".pdf", ".docx", ".csv", ".txt", ".srt", ".vtt", ".pptx"];
     const fileExtension = path.extname(originalFilename || filePath).toLowerCase();
 
     if (!supportedExtensions.includes(fileExtension)) {
@@ -34,14 +33,27 @@ export const ingestionWorker = new Worker(
     }
 
     const isSubtitle = fileExtension === ".srt" || fileExtension === ".vtt";
-const lectureTitle = path.basename(originalFilename, fileExtension);
-let documentRecord;
+    const lectureTitle = path.basename(originalFilename, fileExtension);
+    let documentRecord;
 
     try {
       // Step 1 — Parse the file locally
       const parsedContent = isSubtitle
         ? await loadSrtVttFile(filePath)
         : await loadUniversalFile(filePath);
+
+      // Step 1b — Overwrite metadata.source with the clean original filename.
+      // LangChain's loaders (PDFLoader, DocxLoader, PPTXLoader, CSVLoader)
+      // set metadata.source to the local temp file path by default, which
+      // would leak into citations shown to the user (e.g. "C:\...\uploads\
+      // tmp\...") — replace it with the human-readable original filename.
+      if (!isSubtitle && Array.isArray(parsedContent)) {
+        parsedContent.forEach((doc) => {
+          if (doc.metadata) {
+            doc.metadata.source = originalFilename;
+          }
+        });
+      }
 
       // Step 2 — Upload to Cloudinary
       const { secureUrl, publicId, resourceType, format } = await uploadFileToCloudinary(
@@ -51,29 +63,29 @@ let documentRecord;
 
       // Step 3 — Create Document record in MongoDB with ingestionStatus: "pending"
       documentRecord = await Document.create({
-  clerkUserId,
-  moduleNumber,
-  originalFilename,
-  cloudinaryPublicId: publicId,
-  cloudinaryUrl: secureUrl,
-  resourceType,
-  fileType: format || fileExtension.replace(".", ""),
-  lectureTitle,   // now derived from originalFilename, not parsedContent
-  ingestionStatus: "pending",
-});
+        clerkUserId,
+        moduleNumber,
+        originalFilename,
+        cloudinaryPublicId: publicId,
+        cloudinaryUrl: secureUrl,
+        resourceType,
+        fileType: format || fileExtension.replace(".", ""),
+        lectureTitle,   // now derived from originalFilename, not parsedContent
+        ingestionStatus: "pending",
+      });
 
       // Step 4 — Chunk the parsed content
       let chunks;
-     if (isSubtitle) {
-  const timeChunks = chunkCuesByTimeWindow(parsedContent.cues, 40, 5);
-  chunks = buildChunkMetadata(timeChunks, {
-    module_number: moduleNumber,
-    lecture_title: lectureTitle,
-    source_file: originalFilename,
-  });
-} else {
-  chunks = await chunkDocuments(parsedContent);
-}
+      if (isSubtitle) {
+        const timeChunks = chunkCuesByTimeWindow(parsedContent.cues, 40, 5);
+        chunks = buildChunkMetadata(timeChunks, {
+          module_number: moduleNumber,
+          lecture_title: lectureTitle,
+          source_file: originalFilename,
+        });
+      } else {
+        chunks = await chunkDocuments(parsedContent);
+      }
 
       // Step 5 — Enqueue a job into embeddingQueue
       await embeddingQueue.add("embedding-job", {

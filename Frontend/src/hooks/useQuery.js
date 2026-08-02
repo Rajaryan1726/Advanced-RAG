@@ -1,22 +1,13 @@
 import { useState, useCallback } from 'react'
 import useApi from './useApi.js'
 
-const SESSION_STORAGE_KEY = 'advanced_rag_session_id'
-
-const getOrCreateSessionId = () => {
-  let sessionId = sessionStorage.getItem(SESSION_STORAGE_KEY)
-  if (!sessionId) {
-    sessionId = crypto.randomUUID()
-    sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId)
-  }
-  return sessionId
-}
-
 const useQueryChat = () => {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [sessionId, setSessionId] = useState(getOrCreateSessionId)
+  // Generates a fresh session on every page load/refresh (no persistence
+  // in sessionStorage) — each browser session starts a new conversation
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
   const api = useApi()
 
   const sendQuery = useCallback(
@@ -60,9 +51,7 @@ const useQueryChat = () => {
   )
 
   const startNewChat = useCallback(() => {
-    const newSessionId = crypto.randomUUID()
-    sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId)
-    setSessionId(newSessionId)
+    setSessionId(crypto.randomUUID())
     setMessages([])
     setError(null)
   }, [])

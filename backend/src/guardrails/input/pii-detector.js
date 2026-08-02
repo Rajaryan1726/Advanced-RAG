@@ -10,7 +10,11 @@
 export const detectPII = (text) => {
     const piiPatterns = [
         { type: 'email', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g },
-        { type: 'phone', pattern: /(?:\+91[-\s]?)?\d{10}\b/g },
+        // Requires a non-digit boundary on both sides and an Indian mobile
+        // prefix (6-9) to avoid false-triggering on random 10-digit
+        // sequences that show up in code/pseudocode (array literals, loop
+        // bounds, etc.)
+        { type: 'phone', pattern: /(?<!\d)(?:\+91[-\s]?)?[6-9]\d{9}(?!\d)/g },
         { type: 'credit_card', pattern: /\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b/g },
         { type: 'aadhaar', pattern: /\b[2-9]\d{3}[-\s]?\d{4}[-\s]?\d{4}\b/g }
     ];
