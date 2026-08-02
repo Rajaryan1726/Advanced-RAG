@@ -8,18 +8,24 @@
 // - No data fetching, no auth logic here — pure layout composition
 // - Default export function AppShell()
 
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar.jsx'
 import Topbar from './Topbar.jsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 
 const AppShell = () => {
+  usePageTitle()
+  const location = useLocation()
+
   return (
     <div className="min-h-screen flex bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 p-6 overflow-auto">
-          <Outlet />
+          <div key={location.pathname} className="animate-page-fade-in">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
